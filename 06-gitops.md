@@ -91,10 +91,15 @@ GitOps allows a team to author Kubernetes manifest files, persist them in their 
 1. Deploy the gitops solution in the second cluster (BU0001A0042-04)
 
    ```bash
+   ACR_NAME_BU0001A0042_04=$(az deployment group show -g rg-bu0001a0042-04 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   az acr import --source docker.io/library/memcached:1.5.20 -n $ACR_NAME_BU0001A0042_04
+   az acr import --source docker.io/fluxcd/flux:1.19.0 -n $ACR_NAME_BU0001A0042_04
+   az acr import --source docker.io/weaveworks/kured:1.4.0 -n $ACR_NAME_BU0001A0042_04
    export AKS_CLUSTER_NAME_BU0001A0042_04=$(az deployment group show --resource-group rg-bu0001a0042-04 -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)
    az aks get-credentials -g rg-bu0001a0042-04 -n $AKS_CLUSTER_NAME_BU0001A0042_04
+   kubectl get nodes
    kubectl create namespace cluster-baseline-settings
-   kubectl create -f https://raw.githubusercontent.com/mspnp/aks-secure-baseline/main/cluster-baseline-settings/flux.yaml
+   kubectl create -f https://raw.githubusercontent.com/mspnp/aks-secure-baseline/main/cluster-manifests/cluster-baseline-settings/flux.yaml
    kubectl wait --namespace cluster-baseline-settings --for=condition=ready pod --selector=app.kubernetes.io/name=flux --timeout=90s
    ```
 
